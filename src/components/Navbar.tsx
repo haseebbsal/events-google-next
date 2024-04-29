@@ -11,6 +11,8 @@ export default function Navbar() {
     const pathname = usePathname()
     const [latitude, setLatitude] = useState<null | number>(null)
     const [longitude, setLongitude] = useState<null | number>(null)
+    const session: any = useSession()
+    console.log('navbar',session)
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
@@ -31,7 +33,7 @@ export default function Navbar() {
             return data.results.map((e: any) => e.formatted_address)
         },
     })
-    const uploadCalendarMutation = useMutation((data:any) => fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/upload/calendar`,{method:'POST',body:JSON.stringify({data_to_upload:data}),headers:{'Content-Type':'application/json'}}).then(e => e.json()), {
+    const uploadCalendarMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_SCRAP_BACKEND}/upload/calendar`,{method:'POST',body:JSON.stringify({data_to_upload:data,accessToken:session.data.accessToken}),headers:{'Content-Type':'application/json'}}).then(e => e.json()), {
         onSuccess(data) {
             if (data.msg == 'Done Uploading') {
                 toast.success('Events Uploaded SuccessFully', {
@@ -63,7 +65,7 @@ export default function Navbar() {
             console.log(data)
         },
     })
-    const getEventsMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/events`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } }).then(e => e.json()), {
+    const getEventsMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_SCRAP_BACKEND}/scrap/events`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } }).then(e => e.json()), {
         onSuccess(data) {
             if (data.msg == 'Events Exists') { 
                 toast.success('Events Fetched SuccessFully', {
@@ -118,7 +120,7 @@ export default function Navbar() {
             theme: "colored",
 
         })
-        getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude })
+        getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
         console.log('upload function')
     }
     return (
