@@ -182,22 +182,16 @@ export default function Navbar() {
                         let actualData;
                         try {
                             const { data } = await axios.request(options)
-                            // console.log(data)
+                            console.log(data)
                             actualData = data
                         }
                         catch (e) {
-                            // this runs when no data property is in the results
-                            // console.log(e)
                             continue
-                            // reject('reject')
-                            // dataExists = false
+
                         }
 
                         if (!actualData.eventsResults) {
-
-                            // reject('reject')
                             continue
-                            // dataExists = false
                         }
                         else {
 
@@ -205,21 +199,16 @@ export default function Navbar() {
                                 let duration: string = ''
                                 let distance: string = ''
                                 const checkIfAlreadyExist = data_to_upload.find((uploaded: any) => uploaded.title == j.title)
-                                // console.log('check if exist',checkIfAlreadyExist)
                                 if (checkIfAlreadyExist) {
-                                    // console.log(checkIfAlreadyExist)
                                     continue
                                 }
                                 const addressDestination = j.address.join(' ').replaceAll(' ', '%20')
                                 const distanceUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${addressDestination}&origins=${latitude}%2C${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
                                 let checkingDistance: any = await fetchDistance(distanceUrl)
                                 checkingDistance = await checkDataCorrect(checkingDistance.data, distanceUrl)
-                                // console.log(checkingDistance)
                                 if (!checkingDistance) {
                                     continue
                                 }
-                                // console.log(distanceUrl)
-                                // console.log('checking distance data', checkingDistance.rows[0].elements[0])
                                 const durationParent = checkingDistance.rows[0].elements[0]
                                 if (durationParent.status == 'OK') {
                                     const time_in_minutes = (durationParent.duration.value) / 60
@@ -269,50 +258,14 @@ export default function Navbar() {
                     }
                 }
 
-
-                // console.log(data_to_upload)
-                // resolve('done')
-                // console.log('data to upload',data_to_upload)
                 console.log(data_to_upload)
                 if (data_to_upload.length == 0) {
                     reject('reject')
-                    // return NextResponse.json({msg:'No Events Exists'})
                 }
                 else {
                     resolve('done')
-                    // return NextResponse.json({ msg: 'Events Exists',data:data_to_upload })
                 }
-
-                // if (dataExists) {
-                //     console.log(data_to_upload)
-                //     return NextResponse.json('done')
-
-                // console.log(dataExists)
-                // return NextResponse.json('done')
-                // const functionThatReturnPromise = () => new Promise(async (resolve, reject) => {
-                //     const data = await axios.post(`${process.env.REACT_APP_BASE_URL}/upload/to/google-calendar`, { data_to_upload })
-                //     if (data.status == 200) {
-                //         resolve('done')
-                //     }
-                //     else {
-                //         reject('rejected')
-                //         Cookies.remove('Events_Session')
-                //         Cookies.remove('Events_Session.sig')
-                //         setTimeout(() => {
-                //             navigate('/login')
-                //         }, 3000)
-                //     }
-                // });
-                // toast.promise(
-                //     functionThatReturnPromise,
-                //     {
-                //         pending: 'Adding Events To Your Calendar...',
-                //         success: 'Events Added Succesfully ',
-                //         error: 'An Error Has Occured , Try Logging Back In 🤯'
-                //     }
-                // )
             }
-                // }
             );
 
             try {
@@ -323,7 +276,8 @@ export default function Navbar() {
                 return { msg: 'No Events Exists' }
             }
         }
-        const eventsData=await fetchEvents()
+        const eventsData = await fetchEvents()
+        console.log(eventsData)
         // getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
         console.log('upload function')
     }
