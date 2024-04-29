@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useMutation, useQuery } from "react-query";
 import { toast } from "react-toastify";
+import axios from "axios";
+import fetchEvents from "@/actions/actions";
 type Session = { email: string, id: string, image: string, name: string }
 export default function Navbar() {
     const pathname = usePathname()
@@ -26,6 +28,7 @@ export default function Navbar() {
             console.log("Geolocation is not supported by this browser.");
         }
     }, [])
+
     const addressQuery = useQuery(['addressInfo', latitude, longitude], ({ queryKey }) => fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${queryKey[1]},${queryKey[2]}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`).then(e => e.json()), {
         enabled: !!latitude && !!longitude,
         refetchOnWindowFocus: false,
@@ -33,7 +36,7 @@ export default function Navbar() {
             return data.results.map((e: any) => e.formatted_address)
         },
     })
-    const uploadCalendarMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_SCRAP_BACKEND}/upload/calendar`,{method:'POST',body:JSON.stringify({data_to_upload:data,accessToken:session.data.accessToken}),headers:{'Content-Type':'application/json'}}).then(e => e.json()), {
+    const uploadCalendarMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/upload/calendar`,{method:'POST',body:JSON.stringify({data_to_upload:data}),headers:{'Content-Type':'application/json'}}).then(e => e.json()), {
         onSuccess(data) {
             if (data.msg == 'Done Uploading') {
                 toast.success('Events Uploaded SuccessFully', {
@@ -65,50 +68,50 @@ export default function Navbar() {
             console.log(data)
         },
     })
-    const getEventsMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_SCRAP_BACKEND}/scrap/events`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } }).then(e => e.json()), {
-        onSuccess(data) {
-            if (data.msg == 'Events Exists') { 
-                toast.success('Events Fetched SuccessFully', {
-                    position: "top-right",
-                    autoClose: 4000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
+    // const getEventsMutation = useMutation((data: any) => fetch(`${process.env.NEXT_PUBLIC_SCRAP_BACKEND}/scrap/events`, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } }).then(e => e.json()), {
+    //     onSuccess(data) {
+    //         if (data.msg == 'Events Exists') { 
+    //             toast.success('Events Fetched SuccessFully', {
+    //                 position: "top-right",
+    //                 autoClose: 4000,
+    //                 hideProgressBar: true,
+    //                 closeOnClick: true,
+    //                 pauseOnHover: true,
+    //                 draggable: true,
+    //                 progress: undefined,
+    //                 theme: "colored",
 
-                })
-                toast.success('Uploading To Calendar...', {
-                    position: "top-right",
-                    autoClose: 4000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
+    //             })
+    //             toast.success('Uploading To Calendar...', {
+    //                 position: "top-right",
+    //                 autoClose: 4000,
+    //                 hideProgressBar: true,
+    //                 closeOnClick: true,
+    //                 pauseOnHover: true,
+    //                 draggable: true,
+    //                 progress: undefined,
+    //                 theme: "colored",
 
-                })
-                uploadCalendarMutation.mutate(data.data)
-            }
-            else {
-                toast.error('No Events Exist In Your Location', {
-                    position: "top-right",
-                    autoClose: 4000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
+    //             })
+    //             uploadCalendarMutation.mutate(data.data)
+    //         }
+    //         else {
+    //             toast.error('No Events Exist In Your Location', {
+    //                 position: "top-right",
+    //                 autoClose: 4000,
+    //                 hideProgressBar: true,
+    //                 closeOnClick: true,
+    //                 pauseOnHover: true,
+    //                 draggable: true,
+    //                 progress: undefined,
+    //                 theme: "colored",
 
-                })
-            }
-            console.log(data)
-        },
-    })
-    function UploadToCalendar() {
+    //             })
+    //         }
+    //         console.log(data)
+    //     },
+    // })
+    async function UploadToCalendar() {
         toast.success('Fetching Events....', {
             position: "top-right",
             autoClose: 4000,
@@ -120,7 +123,46 @@ export default function Navbar() {
             theme: "colored",
 
         })
-        getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
+        const eventsData = await fetchEvents(addressQuery.data, session.data.user.id, latitude, longitude)
+        if (eventsData.msg == 'Events Exists') {
+            toast.success('Events Fetched SuccessFully', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+            toast.success('Uploading To Calendar...', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+            uploadCalendarMutation.mutate(eventsData.data)
+        }
+        else {
+            toast.error('No Events Exist In Your Location', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+        }
+        // getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
         console.log('upload function')
     }
     return (
