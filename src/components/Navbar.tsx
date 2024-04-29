@@ -162,7 +162,7 @@ export default function Navbar() {
                         return null
                     }
                     const checkAgain = await fetchDistance(url)
-                    return await checkDataCorrect(checkAgain.data, url, count + 1)
+                    return await checkDataCorrect(checkAgain, url, count + 1)
                 }
                 return data
             }
@@ -205,7 +205,7 @@ export default function Navbar() {
                                 const addressDestination = j.address.join(' ').replaceAll(' ', '%20')
                                 const distanceUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${addressDestination}&origins=${latitude}%2C${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
                                 let checkingDistance: any = await fetchDistance(distanceUrl)
-                                checkingDistance = await checkDataCorrect(checkingDistance.data, distanceUrl)
+                                checkingDistance = await checkDataCorrect(checkingDistance, distanceUrl)
                                 if (!checkingDistance) {
                                     continue
                                 }
