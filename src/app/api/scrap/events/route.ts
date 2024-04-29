@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/utils"
 import mongoose from "mongoose";
 import countryAndcitymodel from "@/database/countryandcity";
 import eventsmodel from "@/database/events";
 import axios from "axios";
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session:any = await getServerSession(authOptions)
     // console.log(session)
     const { location_data,latitude,longitude } = await req.json()
     const id = session.user.id
@@ -148,6 +148,7 @@ export async function POST(req: NextRequest) {
         // console.log(data_to_upload)
         // resolve('done')
         // console.log('data to upload',data_to_upload)
+        console.log(data_to_upload)
         if (data_to_upload.length == 0) {
             reject('reject')
             // return NextResponse.json({msg:'No Events Exists'})
@@ -189,14 +190,19 @@ export async function POST(req: NextRequest) {
     // }
     );
     
-        
-    const existornot = await Promise.all([fetchingEventsPromise])
-    if (existornot[0] == 'done') {
+    try {
+        const existornot = await Promise.all([fetchingEventsPromise])
         return NextResponse.json({ msg: 'Events Exists', data: data_to_upload })
     }
-    else {
+    catch {
         return NextResponse.json({ msg: 'No Events Exists' })
     }
+    // if (existornot[0] == 'done') {
+    //     return NextResponse.json({ msg: 'Events Exists', data: data_to_upload })
+    // }
+    // else {
+    //     return NextResponse.json({ msg: 'No Events Exists' })
+    // }
         // console.log('existornot',existornot)
     
     // return NextResponse.json('done')

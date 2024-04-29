@@ -1,4 +1,4 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/utils"
 import ChangeLocation from "@/components/ChangeLocation"
 import { getServerSession } from "next-auth"
 
@@ -14,7 +14,7 @@ type countryCityData = {
 }
 
 export default async function Location() {
-    const session = await getServerSession(authOptions)
+    const session:any = await getServerSession(authOptions)
     return (
         <>
             <ChangeLocation id={session.user.id} />

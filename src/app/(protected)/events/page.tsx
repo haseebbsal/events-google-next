@@ -1,9 +1,9 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { authOptions } from "@/lib/utils"
 import AddEvents from "@/components/AddEvents"
 import { getServerSession } from "next-auth"
 
 export default async function Events() {
-    const session = await getServerSession(authOptions)
+    const session:any = await getServerSession(authOptions)
     
     return (
         <>
