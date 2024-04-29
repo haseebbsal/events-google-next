@@ -4,6 +4,7 @@ import RenderGroup2 from '@/groups/RenderGroup2'
 import { FormEvent, useEffect } from 'react'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
+import { RiLoader3Fill } from "react-icons/ri";
 
 type countryCityData = {
     country: {
@@ -85,7 +86,11 @@ export default function ChangeLocation({ id }: { id: string }) {
     //     refetchOnWindowFocus:false
     // })
     if (addressQuery.isLoading) {
-        return 'Loading Data...'
+        
+        return (<div className="flex justify-center text-xl ">
+            Loading Data
+            <RiLoader3Fill  className='stroke-1 animate-spin m-1'/>
+            </div>)
     }
 
     // if (addressQuery.isFetching) {
@@ -99,10 +104,17 @@ export default function ChangeLocation({ id }: { id: string }) {
     // console.log(addressQuery.data)
     return (
         <>
-            <p>Your Locations</p>
+            <h1 className='flex justify-center text-4xl font-bold'>Locations on your route</h1>
+            <br></br>
+            <div>
+                <hr className='border border-4 border-gray-400'></hr>
+            </div>
+            <ul className='m-4 list-disc'>
             {
-                addressQuery.data?.map((e:any,index:number) => <p  key={index}>{e}</p>)
+                addressQuery.data?.map((e:any,index:number) => <li className='m-4 w-[50%]' key={index}>{e}</li>)
             }
+            </ul>
+            <hr className='border border-4 border-gray-400'></hr>
         </>
         
         // <form className="mb-4 text-xl text-center" onSubmit={handleSubmit}>

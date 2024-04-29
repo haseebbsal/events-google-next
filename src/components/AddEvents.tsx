@@ -6,6 +6,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "react-query"
+import { RiLoader3Fill } from "react-icons/ri";
+
 
 type NewEvents = { value: string, id: number, uploadid: string }
 type UploadedEvents = {
@@ -82,17 +84,23 @@ export default function AddEvents({ id }: { id: string }) {
     }
 
     if (eventsQuery.isLoading) {
-        return 'Loading Events....'
+        return (<div className="flex justify-center text-xl ">
+            Loading Events
+            <RiLoader3Fill  className='stroke-1 font-bold animate-spin m-1'/>
+            </div>)
     }
 
     if (eventsQuery.isFetching) {
-        return 'Fetching New Events....'
+        return (<div className="flex justify-center text-xl ">
+            Fetching New Events
+            <RiLoader3Fill  className='stroke-1 font-bold animate-spin m-1'/>
+            </div>)
     }
     return (
         <>
 
-            <div className="flex gap-12 justify-center">
-                <h1 className="text-center text-xl  w-[25%]">Change Website Events</h1>
+            <div className="flex gap-12 justify-center items-center">
+                <h1 className="text-center text-3xl font-semibold">Add Events</h1>
                 <Button onClick={() => { addNew() }} className=" !text-gray-900 !border-gray-900 self-center " variant="outlined" startIcon={<AddIcon />}>
                     ADD
                 </Button>
@@ -102,7 +110,7 @@ export default function AddEvents({ id }: { id: string }) {
                     uploadedEvents?.map(e => {
                         return (
                             <div key={e._id} className="flex">
-                                <TextField onChange={(h) => { handleChange(h.target.value, e._id) }} defaultValue={e.name} name={`${e.name}`} fullWidth id="fullWidth" />
+                                <TextField  onChange={(h) => { handleChange(h.target.value, e._id) }} defaultValue={e.name} name={`${e.name}`} fullWidth id="fullWidth" />
                                 <Button id={`${e._id}`} onClick={() => { deleteUploaded(e._id) }} className="w-[20%] !text-gray-900 !border-gray-900 " variant="outlined">
                                     <DeleteIcon />
                                 </Button>
@@ -114,7 +122,7 @@ export default function AddEvents({ id }: { id: string }) {
                     newEvents?.map((e,index) => {
                         return (
                             <div key={e.id} className="flex">
-                                <TextField defaultValue={e.value} onChange={(j)=>{handleNewChange(j.target.value,e.id)}} name={`New Input ${e.id}`} fullWidth label={`New Input ${e.id}`} id="fullWidth" />
+                                <TextField defaultValue={e.value} onChange={(j)=>{handleNewChange(j.target.value,e.id)}} name={`Event ${e.id}`} fullWidth label={`For example: Book fairs, tech conferences etc`} id="fullWidth" />
                                 <Button id={`${e.id}`} onClick={() => { deleteNewInput(e.id) }} className="w-[20%] !text-gray-900 !border-gray-900 " variant="outlined">
                                     <DeleteIcon />
                                 </Button>
@@ -144,7 +152,7 @@ export default function AddEvents({ id }: { id: string }) {
                         <SkeletonTypography loading={loading} />
                 } */}
             </div>
-            {(newEvents.length > 0) && <button className="backgroundcolor-hover  shadow p-4 rounded self-center" onClick={uploadNewEvents}>Submit New Events</button>}
+            {(newEvents.length > 0) && <button className="flex m-auto backgroundcolor-hover shadow p-4 rounded self-center hover:shadow-lg" onClick={uploadNewEvents}>Submit Event Keywords</button>}
         </>
     )
 }

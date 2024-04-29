@@ -122,15 +122,15 @@ export default function Navbar() {
         console.log('upload function')
     }
     return (
-        <div className="flex lg:flex-row md:flex-row sm:flex-row flex-col gap-4 justify-between mb-4">
-            <div className="self-center text-gray-900 font-semibold text-xl flex gap-2 items-center"><FcGoogle className="text-3xl" /> Google Event Upload</div>
+        <div className="flex lg:flex-row md:flex-row sm:flex-row flex-col gap-4 justify-between mb-4 p-4 bg-blue-300 bg-opacity-70" >
+            <div className="self-center text-gray-900 font-bold text-xl flex gap-2 items-center justify-center "><FcGoogle className="text-3xl" /> Google Events Upload</div>
             <div className="flex gap-2 self-center ">
-                <button disabled={addressQuery.data==undefined} className=" backgroundcolor-hover  shadow   p-4 rounded self-center" onClick={UploadToCalendar}>Upload</button>
-                <Link className={pathname == '/location' ? 'shadow bg-red-900 p-4 rounded self-center' : 'shadow  p-4 rounded self-center'}  href={'/location'}>Location</Link>
-                <Link className={pathname == '/events' ? 'shadow bg-red-900 p-4 rounded self-center' : 'shadow  p-4 rounded self-center'}   href={'/events'}>Events</Link>
-                <button className=" backgroundcolor-hover  shadow   p-4 rounded self-center" onClick={() => {
+                <button disabled={addressQuery.data==undefined} className=" bg-white backgroundcolor-hover shadow p-4 rounded self-center hover:shadow-xl" onClick={UploadToCalendar}>Upload</button>
+                <Link className={pathname == '/location' ? ' bg-white shadow p-4 rounded self-center hover:shadow-xl' : 'bg-white shadow  p-4 rounded self-center hover:shadow-xl'}  href={'/location'}>Location</Link>
+                <Link className={pathname == '/events' ? 'bg-white shadow p-4 rounded self-center hover:shadow-xl' : ' bg-white shadow  p-4 rounded self-center hover:shadow-xl'}   href={'/events'}>Events</Link>
+                <button className=" backgroundcolor-hover bg-white shadow p-4 rounded self-center hover:shadow-xl" onClick={() => {
                     signOut()
-                }} >LogOut</button>
+                }} >Log Out</button>
             </div>
         </div>
     )
