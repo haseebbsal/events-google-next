@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useMutation, useQuery } from "react-query";
 import { toast } from "react-toastify";
-import axios from "axios";
 import fetchEvents from "@/actions/actions";
 type Session = { email: string, id: string, image: string, name: string }
 export default function Navbar() {
