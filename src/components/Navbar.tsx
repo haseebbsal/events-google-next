@@ -14,9 +14,7 @@ export default function Navbar() {
     const pathname = usePathname()
     const [latitude, setLatitude] = useState<null | number>(null)
     const [longitude, setLongitude] = useState<null | number>(null)
-    // const [fetchEvents,setFetchEvents]=useState(false)
     const session: any = useSession()
-    console.log('navbar',session)
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
@@ -24,10 +22,10 @@ export default function Navbar() {
                 const longitude = position.coords.longitude;
                 setLatitude(latitude)
                 setLongitude(longitude)
-                console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+                // console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
             });
         } else {
-            console.log("Geolocation is not supported by this browser.");
+            // console.log("Geolocation is not supported by this browser.");
         }
     }, [])
 
@@ -158,48 +156,22 @@ export default function Navbar() {
             }
             try {
                 const uploadingToCalendar = await Promise.all(promise_container)
-                console.log('done uploading to calendar')
                 return { msg: 'Done Uploading', accessToken }
 
             }
             catch (e) {
-                console.log(e)
                 console.log('failed to upload')
                 return { msg: 'failed to upload', accessToken }
             }
         }
         async function fetchEvents() {
-            // const session: any = await getServerSession(authOptions)
-            // console.log(session)
-            // { location_data: addressQuery.data, latitude, longitude, id: session.data?.user!.id }
             const location_data = addressQuery.data
-            // const { location_data, latitude, longitude } = await req.json()
             const id = session.data.user.id
-            // console.log('scrape events', id)
-            // await mongoose.connect(process.env.MONGO_URL!)
-            // const countryAndCityData = await countryAndcitymodel.findOne({ id })
-            // const eventsData = await eventsmodel.find({ id })
             const fetchEventsApi = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${id}`)
             const eventsData=await fetchEventsApi.json()
-            
-            // const {city,country}=countryAndCityData
-            // console.log(countryAndCityData)
-            // console.log('location data',location_data)
-            // return NextResponse.json(countryAndCityData)
-            // const countryAndCityData = await GetCountryAndCity(user.id)
-            // const country = countryAndCityData.data.country.label
-            // const state_or_city = countryAndCityData.data.city.label
-            // const events = await getEvents(user.id)
             let data_to_upload: any[] = []
-            // const timeInPM = { 1: 13, 2: 14, 3: 15, 4: 16, 5: 17, 6: 18, 7: 19, 8: 20, 9: 21, 10: 22, 11: 23, 12: 12 }
-            // // const timeInAM = { 12: 0 }
-            // // const AmorPm = ['AM', 'PM']
             const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            // // let actual_data = []
-
             async function checkDataCorrect(data: any, url: string, count = 0) {
-                // console.log('refetching distance api')
-                // console.log(url)
                 if (data.rows.length == 0) {
                     if (count == 4) {
                         return null
@@ -210,34 +182,27 @@ export default function Navbar() {
                 return data
             }
             const fetchingEventsPromise = new Promise(async (resolve, reject) => {
-                // let dataExists = true
                 const runLoopData = eventsData.length == 0 ? [{ name: '' }] : eventsData
                 for (let j of location_data) {
                     for (let x of runLoopData) {
-
                         const options = {
                             method: 'GET',
                             url: 'https://api.scrape-it.cloud/scrape/google/events',
                             params: { q: `${x.name} Events in ${j}`, location: `${j}`, gl: 'us', hl: 'en' },
                             headers: { 'x-api-key': `${process.env.NEXT_PUBLIC_SCRAPEIT_API_KEY}` }
                         }
-
                         let actualData;
                         try {
                             const { data } = await axios.request(options)
-                            console.log(data)
                             actualData = data
                         }
                         catch (e) {
                             continue
-
                         }
-
                         if (!actualData.eventsResults) {
                             continue
                         }
                         else {
-
                             for (let j of actualData.eventsResults) {
                                 let duration: string = ''
                                 let distance: string = ''
@@ -264,7 +229,6 @@ export default function Navbar() {
                                 else {
                                     continue
                                 }
-
                                 const e = j.date.when
                                 const datesFound = []
                                 const currentYear = new Date().getFullYear()
@@ -277,20 +241,16 @@ export default function Navbar() {
                                         }
                                     }
                                 }
-
-
                                 let endDateYear = currentYear;
                                 let endMonth = Months.indexOf(datesFound[0])
                                 let endDay = parseInt(datesFound[1])
                                 const indexOfStartMonth = Months.indexOf(datesFound[0])
                                 const indexOfStartDay = parseInt(datesFound[1])
-
                                 if (datesFound.length > 2) {
                                     const indexOfEndMonth = Months.indexOf(datesFound[2])
                                     endMonth = indexOfEndMonth
                                     endDay = datesFound[3]
                                     endDateYear = indexOfEndMonth < indexOfStartMonth ? currentYear + 1 : currentYear
-
                                 }
                                 const startDate = new Date(currentYear, indexOfStartMonth, indexOfStartDay).toISOString()
                                 const endDate = new Date(endDateYear, endMonth, endDay).toISOString()
@@ -300,8 +260,6 @@ export default function Navbar() {
                         }
                     }
                 }
-
-                console.log(data_to_upload)
                 if (data_to_upload.length == 0) {
                     reject('reject')
                 }
@@ -386,9 +344,7 @@ export default function Navbar() {
 
             })
         }
-        console.log(eventsData)
         // getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
-        console.log('upload function')
     }
     return (
         <div className="flex lg:flex-row md:flex-row sm:flex-row flex-col gap-4 justify-between mb-4 p-4 bg-blue-300 bg-opacity-70" >

@@ -26,10 +26,10 @@ export default function ChangeLocation({ id }: { id: string }) {
                 const longitude = position.coords.longitude;
                 setLatitude(latitude)
                 setLongitude(longitude)
-                console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+                // console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
             });
         } else {
-            console.log("Geolocation is not supported by this browser.");
+            // console.log("Geolocation is not supported by this browser.");
         }
     }, [])
     const addressQuery = useQuery(['addressInfo', latitude, longitude], ({ queryKey }) => fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${queryKey[1]},${queryKey[2]}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`).then(e=>e.json()), {

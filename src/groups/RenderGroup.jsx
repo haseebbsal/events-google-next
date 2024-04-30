@@ -48,18 +48,11 @@ export default function RenderGroup({ countriesData, country, setCountry }) {
                     setCountry({ ...country, country: {firstLetter:'',label:''} });
                     return
                 }
-                console.log('new value',newValue)
+                // console.log('new value',newValue)
                 setCountry({ ...country, country: newValue });
             }}
             onFocus={() => {
                 setCountry({ ...country, city:{firstLetter:'',label:''} });
-                // setCityData(null)
-            }}
-            onBlur={async () => {
-                // let dataForCity = await fetch('https://countriesnow.space/api/v0.1/countries/cities', { method: 'POST', body: JSON.stringify({ country: country.country.label }),headers:{'Content-type':'application/json'} })
-                // dataForCity = await dataForCity.json()
-                // setCityData(dataForCity.data)
-                
             }}
             className='mb-4 !w-full'
             id="grouped-demo"

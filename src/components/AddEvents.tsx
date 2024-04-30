@@ -35,9 +35,6 @@ export default function AddEvents({ id }: { id: string }) {
         refetchOnWindowFocus: false,
         onSuccess(data) {
             setUploadedEvents(data)
-            // if (!!data) {
-            //     setUploadedEvents(data)
-            // }
         },
         
     })

@@ -1,7 +1,5 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/utils"
 import AuthProvider from "@/providers/AuthProvider";
 
 
