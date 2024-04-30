@@ -278,6 +278,7 @@ export default function Navbar() {
             }
         }
         const eventsData = await fetchEvents()
+        console.log(eventsData)
         if (eventsData.msg == 'Events Exists') {
             toast.success('Events Fetched SuccessFully', {
                 position: "top-right",
@@ -302,6 +303,7 @@ export default function Navbar() {
 
             })
             const uploading = await UploadToEventsCalendar(eventsData.data)
+            console.log(uploading)
             if (uploading.msg == 'Done Uploading') {
                 toast.success('Events Uploaded SuccessFully', {
                     position: "top-right",
