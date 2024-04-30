@@ -125,6 +125,49 @@ export default function Navbar() {
             theme: "colored",
 
         })
+        async function UploadToEventsCalendar(data:any) {
+            // const token = await getToken({ req })
+            const { accessToken } = session.data
+            // const { data_to_upload } = await req.json()
+            const data_to_upload=data
+            // console.log('from calendar',data_to_upload)
+            let promise_container = []
+            for (let j of data_to_upload) {
+
+                const waiting = fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                    method: 'POST', body: JSON.stringify({
+                        'summary': `${j.title}`,
+                        'location': `${j.address}`,
+                        'source': { 'title': `${j.title}`, 'url': `${j.link}` },
+                        'description': `${j.description ? j.description : 'No Description'} , the distance is ${j.distance} and duration is ${j.duration}`,
+                        'start': {
+                            'dateTime': `${j.start}`,
+                            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                        },
+                        'end': {
+                            'dateTime': `${j.end}`,
+                            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                        }
+                    }), headers: { 'Authorization': `Bearer ${accessToken}` }
+                })
+
+
+
+                promise_container.push(waiting)
+
+            }
+            try {
+                const uploadingToCalendar = await Promise.all(promise_container)
+                console.log('done uploading to calendar')
+                return { msg: 'Done Uploading', accessToken }
+
+            }
+            catch (e) {
+                console.log(e)
+                console.log('failed to upload')
+                return { msg: 'failed to upload', accessToken }
+            }
+        }
         async function fetchEvents() {
             // const session: any = await getServerSession(authOptions)
             // console.log(session)
@@ -277,6 +320,72 @@ export default function Navbar() {
             }
         }
         const eventsData = await fetchEvents()
+        if (eventsData.msg == 'Events Exists') {
+            toast.success('Events Fetched SuccessFully', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+            toast.success('Uploading To Calendar...', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+            const uploading = await UploadToEventsCalendar(eventsData.data)
+            if (uploading.msg == 'Done Uploading') {
+                toast.success('Events Uploaded SuccessFully', {
+                    position: "top-right",
+                    autoClose: 4000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored",
+
+                })
+            }
+            else {
+                toast.error('Events Failed To Upload, Try Again', {
+                    position: "top-right",
+                    autoClose: 4000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored",
+
+                })
+
+            }
+            // uploadCalendarMutation.mutate(data.data)
+        }
+        else {
+            toast.error('No Events Exist In Your Location', {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+
+            })
+        }
         console.log(eventsData)
         // getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
         console.log('upload function')
