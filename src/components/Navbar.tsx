@@ -16,6 +16,7 @@ export default function Navbar() {
     const [longitude, setLongitude] = useState<null | number>(null)
     const session: any = useSession()
     useEffect(() => {
+        const { accessToken } = session.data
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
                 const latitude = position.coords.latitude;
@@ -112,64 +113,80 @@ export default function Navbar() {
         },
     })
     async function UploadToCalendar() {
-        toast.success('Fetching Events....', {
-            position: "top-right",
-            autoClose: 4000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-
-        })
         async function UploadToEventsCalendar(data:any) {
-            // const token = await getToken({ req })
+            let eventsData:any=[]
             const { accessToken } = session.data
-            // const { data_to_upload } = await req.json()
+            async function getEventsCalendar(pageToken = null) {
+                let waiting;
+                if (!pageToken) {
+                    waiting = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
+                    })
+                }
+                else {
+                    waiting = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?pageToken=${pageToken}`, {
+                        headers: { 'Authorization': `Bearer ${accessToken}` }
+                    })
+                }
+                
+                const data = await waiting.json()
+                eventsData=[...eventsData,...data.items]
+                if (data.nextPageToken) {
+                    return await getEventsCalendar(data.nextPageToken)
+                }
+                else {
+                    return eventsData
+                }
+            }
+            
+            const items = await getEventsCalendar()
             const data_to_upload=data
-            // console.log('from calendar',data_to_upload)
             let promise_container = []
             for (let j of data_to_upload) {
+                const findDuplicate = items.find((item: any) => item.description.includes(j.description))
+                if (!findDuplicate) {
+                    const waiting = fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                        method: 'POST', body: JSON.stringify({
+                            'summary': `${j.title}`,
+                            'location': `${j.address}`,
+                            'source': { 'title': `${j.title}`, 'url': `${j.link}` },
+                            'description': `${j.description ? j.description : 'No Description'} , the distance is ${j.distance} and duration is ${j.duration}, date of event: ${j.date}`,
+                            'start': {
+                                'dateTime': `${j.start}`,
+                                'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                            },
+                            'end': {
+                                'dateTime': `${j.end}`,
+                                'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
+                            }
+                        }), headers: { 'Authorization': `Bearer ${accessToken}` }
+                    })
 
-                const waiting = fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-                    method: 'POST', body: JSON.stringify({
-                        'summary': `${j.title}`,
-                        'location': `${j.address}`,
-                        'source': { 'title': `${j.title}`, 'url': `${j.link}` },
-                        'description': `${j.description ? j.description : 'No Description'} , the distance is ${j.distance} and duration is ${j.duration}`,
-                        'start': {
-                            'dateTime': `${j.start}`,
-                            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
-                        },
-                        'end': {
-                            'dateTime': `${j.end}`,
-                            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
-                        }
-                    }), headers: { 'Authorization': `Bearer ${accessToken}` }
-                })
 
 
-
-                promise_container.push(waiting)
-
-            }
-            try {
-                const uploadingToCalendar = await Promise.all(promise_container)
-                return { msg: 'Done Uploading', accessToken }
+                    promise_container.push(waiting)
+                }
+                
 
             }
-            catch (e) {
-                console.log('failed to upload')
-                return { msg: 'failed to upload', accessToken }
-            }
+            
+            const uploadingToCalendar = Promise.all(promise_container)
+            await toast.promise(
+                uploadingToCalendar,
+                {
+                    pending: 'Uploading To Calendar',
+                    success: 'Uploaded To Calendar Sucessfully 👌',
+                    error: 'Error in Uploading 🤯'
+                }
+            )        
         }
         async function fetchEvents() {
             const location_data = addressQuery.data
             const id = session.data.user.id
             const fetchEventsApi = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/events/${id}`)
-            const eventsData=await fetchEventsApi.json()
-            let data_to_upload: any[] = []
+            const eventsData = await fetchEventsApi.json()
+            let data_to_upload:any=[]
+            let totalEventsData: any = []
             const Months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
             async function checkDataCorrect(data: any, url: string, count = 0) {
                 if (data.rows.length == 0) {
@@ -181,172 +198,137 @@ export default function Navbar() {
                 }
                 return data
             }
+            async function getEventsFromAPI(x:any,j:any) {
+                let start = 0
+                let newData:any=[]
+                while (true) {
+                    let actualData;
+                    const options = {
+                        method: 'GET',
+                        url: 'https://api.scrape-it.cloud/scrape/google/events',
+                        params: { q: `${x.name} Events in ${j}`, location: `${j}`, gl: 'us', hl: 'en', start },
+                        headers: { 'x-api-key': `${process.env.NEXT_PUBLIC_SCRAPEIT_API_KEY}` }
+                    }
+                    try {
+                        const { data } = await axios.request(options)
+                        actualData = data
+                    }
+                    catch (e) {
+                        if (start == 40) {
+                            return newData
+                        }
+                        start+=10
+                        continue
+                    }
+                    if (!actualData.eventsResults) {
+                        if (start == 40) {
+                            return newData
+                        }
+                        start += 10
+                        continue
+                    }
+                    else {
+                        if (start == 40) {
+                            newData=[...newData,...actualData.eventsResults]
+                            return newData
+                        }
+                        else {
+                            start+=10
+                        }
+                    }
+                }
+            }
             const fetchingEventsPromise = new Promise(async (resolve, reject) => {
                 const runLoopData = eventsData.length == 0 ? [{ name: '' }] : eventsData
                 for (let j of location_data) {
                     for (let x of runLoopData) {
-                        const options = {
-                            method: 'GET',
-                            url: 'https://api.scrape-it.cloud/scrape/google/events',
-                            params: { q: `${x.name} Events in ${j}`, location: `${j}`, gl: 'us', hl: 'en' },
-                            headers: { 'x-api-key': `${process.env.NEXT_PUBLIC_SCRAPEIT_API_KEY}` }
-                        }
-                        let actualData;
-                        try {
-                            const { data } = await axios.request(options)
-                            actualData = data
-                        }
-                        catch (e) {
-                            continue
-                        }
-                        if (!actualData.eventsResults) {
-                            continue
-                        }
-                        else {
-                            for (let j of actualData.eventsResults) {
-                                let duration: string = ''
-                                let distance: string = ''
-                                const checkIfAlreadyExist = data_to_upload.find((uploaded: any) => uploaded.title == j.title)
-                                if (checkIfAlreadyExist) {
-                                    continue
-                                }
-                                const addressDestination = j.address.join(' ').replaceAll(' ', '%20')
-                                const distanceUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${addressDestination}&origins=${latitude}%2C${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
-                                let checkingDistance: any = await fetchDistance(distanceUrl)
-                                checkingDistance = await checkDataCorrect(checkingDistance, distanceUrl)
-                                if (!checkingDistance) {
-                                    continue
-                                }
-                                const durationParent = checkingDistance.rows[0].elements[0]
-                                if (durationParent.status == 'OK') {
-                                    const time_in_minutes = (durationParent.duration.value) / 60
-                                    if (time_in_minutes > 30) {
-                                        continue
-                                    }
-                                    duration = durationParent.duration.text
-                                    distance = durationParent.distance.text
-                                }
-                                else {
-                                    continue
-                                }
-                                const e = j.date.when
-                                const datesFound = []
-                                const currentYear = new Date().getFullYear()
-                                const splittedData = e.split(' ')
-                                for (let u = 0; u < splittedData.length; u++) {
-                                    for (let p of Months) {
-                                        if (splittedData[u] == p) {
-                                            datesFound.push(splittedData[u])
-                                            datesFound.push(splittedData[u + 1].replaceAll(',', ''))
-                                        }
-                                    }
-                                }
-                                let endDateYear = currentYear;
-                                let endMonth = Months.indexOf(datesFound[0])
-                                let endDay = parseInt(datesFound[1])
-                                const indexOfStartMonth = Months.indexOf(datesFound[0])
-                                const indexOfStartDay = parseInt(datesFound[1])
-                                if (datesFound.length > 2) {
-                                    const indexOfEndMonth = Months.indexOf(datesFound[2])
-                                    endMonth = indexOfEndMonth
-                                    endDay = datesFound[3]
-                                    endDateYear = indexOfEndMonth < indexOfStartMonth ? currentYear + 1 : currentYear
-                                }
-                                const startDate = new Date(currentYear, indexOfStartMonth, indexOfStartDay).toISOString()
-                                const endDate = new Date(endDateYear, endMonth, endDay).toISOString()
-                                data_to_upload.push({ title: j.title, description: j.description, address: j.address.join(' '), start: startDate, end: endDate, link: j.link, duration, distance })
+                        const totalEventsDataWithLimit = await getEventsFromAPI(x, j)
+                        for (let uploaded of totalEventsDataWithLimit) {
+                            const findingDup = totalEventsData.find((inTotal: any) => inTotal.description == uploaded.description)
+                            if (!findingDup) {
+                                totalEventsData = [...totalEventsData, uploaded]
                             }
-
                         }
                     }
                 }
-                if (data_to_upload.length == 0) {
+                if (totalEventsData.length == 0) {
                     reject('reject')
                 }
                 else {
+                    console.log(totalEventsData)
+                    for (let j of totalEventsData) {
+                        let duration: string = ''
+                        let distance: string = ''
+                        const addressDestination = j.address.join(' ').replaceAll(' ', '%20')
+                        const distanceUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${addressDestination}&origins=${latitude}%2C${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
+                        let checkingDistance: any = await fetchDistance(distanceUrl)
+                        checkingDistance = await checkDataCorrect(checkingDistance, distanceUrl)
+                        if (!checkingDistance) {
+                            continue
+                        }
+                        const durationParent = checkingDistance.rows[0].elements[0]
+                        if (durationParent.status == 'OK') {
+                            const time_in_minutes = (durationParent.duration.value) / 60
+                            if (time_in_minutes > 30) {
+                                continue
+                            }
+                            duration = durationParent.duration.text
+                            distance = durationParent.distance.text
+                        }
+                        else {
+                            continue
+                        }
+                        // console.log(j)
+                        const e = j.date.when
+                        const datesFound = []
+                        const currentYear = new Date().getFullYear()
+                        const splittedData = e.split(' ')
+                        for (let u = 0; u < splittedData.length; u++) {
+                            for (let p of Months) {
+                                if (splittedData[u] == p) {
+                                    datesFound.push(splittedData[u])
+                                    datesFound.push(splittedData[u + 1].replaceAll(',', ''))
+                                }
+                            }
+                        }
+                        let endDateYear = currentYear;
+                        let endMonth = Months.indexOf(datesFound[0])
+                        let endDay = parseInt(datesFound[1])
+                        const indexOfStartMonth = Months.indexOf(datesFound[0])
+                        const indexOfStartDay = parseInt(datesFound[1])
+                        if (datesFound.length > 2) {
+                            const indexOfEndMonth = Months.indexOf(datesFound[2])
+                            endMonth = indexOfEndMonth
+                            endDay = datesFound[3]
+                            endDateYear = indexOfEndMonth < indexOfStartMonth ? currentYear + 1 : currentYear
+                        }
+                        const startDate = new Date(currentYear, indexOfStartMonth, indexOfStartDay).toISOString()
+                        const endDate = new Date(endDateYear, endMonth, endDay).toISOString()
+                        data_to_upload.push({ title: j.title, description: j.description, address: j.address.join(' '), start: startDate, end: endDate, link: j.link, duration, distance, date: j.date.when })
+                    }
                     resolve('done')
                 }
             }
             );
 
-            try {
-                const existornot = await Promise.all([fetchingEventsPromise])
-                return { msg: 'Events Exists', data: data_to_upload }
-            }
-            catch {
-                return { msg: 'No Events Exists' }
-            }
+            
+            const existornot = Promise.all([fetchingEventsPromise])
+            await toast.promise(
+                existornot,
+                {
+                    pending: 'Fetching Events...',
+                    success: 'Events Fetched Successfully 👌',
+                    error: 'No Events Exist 🤯'
+                }
+            )
+            return { data:data_to_upload }
+                
+            
+            
         }
         const eventsData = await fetchEvents()
-        console.log(eventsData)
-        if (eventsData.msg == 'Events Exists') {
-            toast.success('Events Fetched SuccessFully', {
-                position: "top-right",
-                autoClose: 4000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-
-            })
-            toast.success('Uploading To Calendar...', {
-                position: "top-right",
-                autoClose: 4000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-
-            })
-            const uploading = await UploadToEventsCalendar(eventsData.data)
-            console.log(uploading)
-            if (uploading.msg == 'Done Uploading') {
-                toast.success('Events Uploaded SuccessFully', {
-                    position: "top-right",
-                    autoClose: 4000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-
-                })
-            }
-            else {
-                toast.error('Events Failed To Upload, Try Again', {
-                    position: "top-right",
-                    autoClose: 4000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-
-                })
-
-            }
-            // uploadCalendarMutation.mutate(data.data)
-        }
-        else {
-            toast.error('No Events Exist In Your Location', {
-                position: "top-right",
-                autoClose: 4000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-
-            })
-        }
-        // getEventsMutation.mutate({ location_data: addressQuery.data, latitude, longitude,id:session.data?.user!.id })
+        console.log(eventsData.data)
+        const uploading = await UploadToEventsCalendar(eventsData.data)
     }
     return (
         <div className="flex lg:flex-row md:flex-row sm:flex-row flex-col gap-4 justify-between mb-4 p-4 bg-blue-300 bg-opacity-70" >
