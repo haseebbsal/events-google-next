@@ -27,7 +27,6 @@ export default async function RootLayout({
           {children}
           </QueryProvider>
         </NextAuthProvider>
-        <script async window_extracting='deep-dive-analytics' data-id='21' src="http://localhost:7080/js/listening.js"></script>
       </body>
     </html>
   );
