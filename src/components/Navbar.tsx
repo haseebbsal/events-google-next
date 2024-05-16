@@ -240,6 +240,7 @@ export default function Navbar() {
             }
             const fetchingEventsPromise = new Promise(async (resolve, reject) => {
                 const runLoopData = eventsData.length == 0 ? [{ name: '' }] : eventsData
+                runLoopData.push({name:''})
                 for (let j of location_data) {
                     for (let x of runLoopData) {
                         const totalEventsDataWithLimit = await getEventsFromAPI(x, j)
