@@ -214,21 +214,21 @@ export default function Navbar() {
                         actualData = data
                     }
                     catch (e) {
-                        if (start == 40) {
+                        if (start == 100) {
                             return newData
                         }
                         start+=10
                         continue
                     }
                     if (!actualData.eventsResults) {
-                        if (start == 40) {
+                        if (start == 100) {
                             return newData
                         }
                         start += 10
                         continue
                     }
                     else {
-                        if (start == 40) {
+                        if (start == 100) {
                             newData=[...newData,...actualData.eventsResults]
                             return newData
                         }
