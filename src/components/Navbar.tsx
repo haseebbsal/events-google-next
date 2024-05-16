@@ -206,7 +206,7 @@ export default function Navbar() {
                     const options = {
                         method: 'GET',
                         url: 'https://api.scrape-it.cloud/scrape/google/events',
-                        params: { q: `${x.name} Events in ${j}`, location: `${j}`, gl: 'us', hl: 'en', start },
+                        params: { q: `${x.name} Events near ${j}`, location: `${j}`, gl: 'us', hl: 'en', start },
                         headers: { 'x-api-key': `${process.env.NEXT_PUBLIC_SCRAPEIT_API_KEY}` }
                     }
                     try {
