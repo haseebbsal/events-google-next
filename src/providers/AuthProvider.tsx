@@ -7,7 +7,8 @@ import { useState,useEffect } from "react";
 
 export default  function AuthProvider({ children }: { children: React.ReactNode }) {
     const pathname=usePathname()
-    const session:any = useSession();
+    const session: any = useSession();
+    console.log('session layout',session)
     // console.log('session',session)
     if (session.status=='loading') {
         return 'Wait Please'
