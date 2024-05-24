@@ -14,7 +14,9 @@ export default  function AuthProvider({ children }: { children: React.ReactNode 
     console.log('session layout', session.status, session.data.error, session.status == 'authenticated',typeof window)
     if (session.status == 'authenticated') {
         if (session.data.error) {
+            console.log('im here')
             if (typeof window != undefined) {
+                console.log(window)
                 signOut()
                 return 'Session Expired'
             }
