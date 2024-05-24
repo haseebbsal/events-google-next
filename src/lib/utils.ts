@@ -38,7 +38,9 @@ export const authOptions: AuthOptions = {
                     }), headers: { 'Content-Type': 'application/json' }
                 })
                 const newTokens = await fetchNew.json()
+                console.log(newTokens)
                 if (newTokens.error) {
+                    console.log('new tokens error')
                     return { ...token, error: 'login again' }
                 }
                 const { access_token, id_token } = newTokens
