@@ -8,11 +8,13 @@ import { useState,useEffect } from "react";
 export default  function AuthProvider({ children }: { children: React.ReactNode }) {
     const pathname=usePathname()
     const session: any = useSession();
-    console.log('session layout',session)
+    // console.log('session layout',session)
     // console.log('session',session)
     if (session.data.status=='loading') {
         return 'Wait Please'
     }
+    console.log('session layout', session.data.status, session.data.error, session.data.status == 'authenticated')
+    console.log()
     if (session.data.status == 'authenticated') {
         if (session.data.error) {
             signOut()
